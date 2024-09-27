@@ -464,8 +464,8 @@ class vorenv(gym.Env):
                     rm_total_delay = delay_r2m + delay_m_compute
                     # Generate the final ddl information
                     # np.array(list(self.r_m_new()))[v, 5] = np.array(list(self.o_v_new.values()))[v, 5] - rm_total_delay
-                    revised_ddl = max(r_pre_state[3 + v * 3 + 5] - rm_total_delay, 0)
-                    r_ddl[r_agent_num] = r_ddl[r_agent_num] + revised_ddl
+                    revised_ddl = max(r_pre_state[3 + v * 3 + 5] - rm_total_delay, [0])
+                    r_ddl[r_agent_num] = r_ddl[r_agent_num] +  np.array(revised_ddl)
 
 
 
