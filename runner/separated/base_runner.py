@@ -107,6 +107,7 @@ class Runner(object):
             )
             self.buffer.append(bu)
             self.trainer.append(tr)
+            print('share_observation_space', share_observation_space)
 
     def run(self):
         raise NotImplementedError

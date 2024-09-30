@@ -291,6 +291,10 @@ class vorenv(gym.Env):
                 agents_action[group * 2][0] = 1
             if agents_action[group * 2][0] == 1 and agents_action[group * 2 + 1][0] == 1:
                 agents_action[group * 2][0] = 0
+        for group in range(0, 2):
+            if agents_action[group * 2][0] == 1 and agents_action[group * 2 + 1][0] == 0:
+                ou_action[group][7] = [0]
+            if agents_action[group * 2][0] == 0 and agents_action[group * 2 + 1][0] == 1:
                 ou_action[group][7] = [1]
         num_r_rtr = np.array([[0, 0], [0, 0], [0, 0], [0, 0]])
         num_o_tra_total = np.array([[0, 0], [0, 0]])
@@ -460,11 +464,11 @@ class vorenv(gym.Env):
                     # calculate the retransmit delay
                     delay_r2m = ((r_pre_state[3 + v * 6 + 3] * 8) / rate_r2m) * 1000
                     # calculate the compute delay GHz/GHz
-                    delay_m_compute =( r_pre_state[3 + v * 3 + 4] / self.m_cpu[int(r_agent_num * 2 + r_action[1 + v])]) * 1000
+                    delay_m_compute =( r_pre_state[3 + v * 6 + 4] / self.m_cpu[int(r_agent_num * 2 + r_action[1 + v])]) * 1000
                     rm_total_delay = delay_r2m + delay_m_compute
                     # Generate the final ddl information
                     # np.array(list(self.r_m_new()))[v, 5] = np.array(list(self.o_v_new.values()))[v, 5] - rm_total_delay
-                    revised_ddl = max(r_pre_state[3 + v * 3 + 5] - rm_total_delay, [0])
+                    revised_ddl = max(r_pre_state[3 + v * 6 + 5] - rm_total_delay, [0])
                     r_ddl[r_agent_num] = r_ddl[r_agent_num] +  np.array(revised_ddl)
 
 
@@ -477,9 +481,10 @@ class vorenv(gym.Env):
             self.r_assign[r_agent_num] = num_r_rtr[r_agent_num]
             # calculate the reward for each OU
 
-        x = 0
-        y = 0
+
         for agent_o in range(0, self.n_o_agents):
+            x = 0
+            y = 0
             for i in self.o_receive:
                 x = x + i ** 2
             f_o_rec = (sum(self.o_receive)) ** 2 / (2 * x + 0.0000001)
@@ -492,14 +497,17 @@ class vorenv(gym.Env):
 
         # calculate the reward for each RU
         z = 0
-        print(r_ddl)
         f_r_rtr = [0 for _ in range(self.n_r_agents)]
         for agent_r in range(0, self.n_r_agents):
+            z = 0
             for k in self.r_assign[agent_r]:
                 z = z + k ** 2
             f_r_rtr[agent_r] = (sum(self.r_assign[agent_r])) ** 2 / (2 * z + 0.0000001)
             # rewards_ru[agent_r] = float(r_ddl[agent_r] * rewards_ou[agent_r//1] * f_r_rtr )
-        rewards_ru = sum(r_ddl) * np.prod(rewards_ou) * np.prod(f_r_rtr)
+        rewards_ru = sum(r_ddl) * (np.prod(rewards_ou) ** 2) * (np.prod(f_r_rtr) ** 2)
+        # print('/', rewards_ru, sum(r_ddl))
+        # print('//', self.o_tra, '\n', rewards_ou, '\n', np.prod(rewards_ou))
+        # print('///', self.r_assign, '\n', f_r_rtr, '\n', np.prod(f_r_rtr))
         rewards_ru_average = [rewards_ru] * self.n_r_agents
         # print('rewards_ru', rewards_ru)
 
